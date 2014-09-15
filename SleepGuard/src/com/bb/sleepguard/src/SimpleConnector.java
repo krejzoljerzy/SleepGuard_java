@@ -79,6 +79,15 @@ public class SimpleConnector {
 			e.printStackTrace();
 		}
 	}
+	
+	public void write(String data) {
+		try {
+			serialPort.writeBytes(data.getBytes());
+		} catch (SerialPortException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
 	public byte[] read() {
 
@@ -119,6 +128,10 @@ public class SimpleConnector {
 			}
 		}
 
+	}
+	
+	public int peekLength(){
+		return dataLength;
 	}
 
 }
