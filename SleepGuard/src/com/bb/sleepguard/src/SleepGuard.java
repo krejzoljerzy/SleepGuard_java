@@ -19,21 +19,31 @@ import javax.swing.JButton;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
+import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.AbstractListModel;
 import javax.swing.JTree;
 import javax.swing.JComboBox;
+
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
+import java.util.ArrayList;
+import java.util.Arrays;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.ListSelectionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 
 public class SleepGuard extends JFrame {
 
 	private JPanel contentPane;
-	private SimpleConnector connector;
+	private static SimpleConnector connector;
 	private static String[] portNames= SimpleConnector.listAvailablePorts();
 	private static JChartPanel chartPanel;
 	private static JComboBox<String> comboBox;
+	private static ArrayList<DataContainer> record_list = new ArrayList<DataContainer>();
+	private static JList list;
 
 	/**
 	 * Launch the application.
@@ -91,6 +101,7 @@ public class SleepGuard extends JFrame {
 				connector.write("r");
 				DataWaiter waiter = new DataWaiter(chartPanel);
 				waiter.start();
+
 			}
 		});
 		panel_1.add(btnNewButton, "cell 0 0");
@@ -98,7 +109,7 @@ public class SleepGuard extends JFrame {
 		JButton btnNewButton_1 = new JButton("Erase memory");
 		btnNewButton_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				connector.write("e");
+				//connector.write("e");
 			}
 		});
 		panel_1.add(btnNewButton_1, "cell 0 1");
@@ -118,15 +129,12 @@ public class SleepGuard extends JFrame {
 			}
 		});
 		panel_1.add(btnNewButton_3, "cell 0 3");
-		
-		JList list = new JList();
-		list.setModel(new AbstractListModel() {
-			String[] values = new String[] {"test", "test2", "test3", "test4", "test5"};
-			public int getSize() {
-				return values.length;
-			}
-			public Object getElementAt(int index) {
-				return values[index];
+		list = new JList(new String[]{"No records - download from device"});
+		list.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				chartPanel.add(record_list.get(list.getSelectedIndex()).getData());
+				
 			}
 		});
 		
@@ -145,10 +153,34 @@ public class SleepGuard extends JFrame {
 		panel.add(comboBox, "cell 0 0,alignx left,aligny top");
 		
 		JButton btnOpen = new JButton("Open");
+		btnOpen.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				connector = new SimpleConnector(portNames[comboBox.getSelectedIndex()]);
+			}
+		});
 		panel.add(btnOpen, "cell 0 1");
 		
 		
 		
+	}
+	
+	public static void dataReady(){
+		int i=0;
+		DefaultListModel<String>listModel = new DefaultListModel<String>();
+		byte[] data_bytes = connector.read();
+		String data_str = new String(data_bytes);
+		String[] data_str_records = data_str.split("Record_");
+		data_str_records = Arrays.copyOfRange(data_str_records, 1, data_str_records.length);
+		for (String str_record : data_str_records){
+			byte[] temp_data_bytes = str_record.getBytes();
+			byte[] number = Arrays.copyOfRange(temp_data_bytes, 1,5);
+			byte[] samples = Arrays.copyOfRange(temp_data_bytes, 5,temp_data_bytes.length-1);
+			DataContainer dc = new DataContainer(number, samples);
+			listModel.addElement(dc.getName());
+			record_list.add(dc);
+		}
+		list.removeAll();
+		list.setModel(listModel);
 	}
 	
 	private class DataWaiter extends Thread{
@@ -162,12 +194,16 @@ public class SleepGuard extends JFrame {
 		
 		public void run() {
 	        try {
-				Thread.sleep(500);
-				if(tempDataLength==connector.peekLength()){
-					return;
-				}else {
-					tempDataLength = connector.peekLength();
-				}
+	        	while(true){
+					Thread.sleep(500);
+					if(tempDataLength==connector.peekLength()){
+						dataReady();
+						return;
+					}else {
+						tempDataLength = connector.peekLength();
+						System.out.println(tempDataLength);
+					}
+	        	}
 				
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
@@ -176,4 +212,6 @@ public class SleepGuard extends JFrame {
 	        
 	    }
 	}
+	
+
 }
