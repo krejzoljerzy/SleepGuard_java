@@ -16,9 +16,9 @@ public class JChartPanel extends JPanel {
 	static XYSeries series = new XYSeries("Sampled data");
     XYSeriesCollection data = new XYSeriesCollection(series);
     JFreeChart chart = ChartFactory.createXYLineChart(
-        "XY Series Demo",
-        "X", 
-        "Y", 
+        "Trace of breath in sleep",
+        "Sample", 
+        "mBar", 
         data,
         PlotOrientation.VERTICAL,
         true,
@@ -28,23 +28,9 @@ public class JChartPanel extends JPanel {
     ChartPanel chartPanel =new ChartPanel(chart);
 	
 	public JChartPanel(){
-	
     super();
-    series = new XYSeries("Random Data");
-    data = new XYSeriesCollection(series);
-    chart = ChartFactory.createXYLineChart(
-        "XY Series Demo",
-        "X", 
-        "Y", 
-        data,
-        PlotOrientation.VERTICAL,
-        true,
-        true,
-        false
-    );
-
     chartPanel = new ChartPanel(chart);
-    chartPanel.setPreferredSize(new java.awt.Dimension(590, 505));
+    chartPanel.setPreferredSize(new java.awt.Dimension(688, 510));
     add(chartPanel);
 	}
 	
