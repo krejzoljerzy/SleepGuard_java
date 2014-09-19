@@ -30,12 +30,21 @@ import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 public class SleepGuard extends JFrame {
 
@@ -162,18 +171,42 @@ public class SleepGuard extends JFrame {
 				
 				chooser = new JFileChooser();
 				chooser.setCurrentDirectory(new java.io.File("."));
-				chooser.setDialogTitle(choosertitle);
+				chooser.setDialogTitle("Save records");
 				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 				//
 				// disable the "All files" option.
 				//
 				chooser.setAcceptAllFileFilterUsed(false);
 				//
-				if (chooser.showOpenDialog(handle) == JFileChooser.APPROVE_OPTION) {
+				if (chooser.showSaveDialog(handle) == JFileChooser.APPROVE_OPTION) {
 					System.out.println("getCurrentDirectory(): "
 							+ chooser.getCurrentDirectory());
-					System.out.println("getSelectedFile() : "
-							+ chooser.getSelectedFile());
+					Calendar calendar = Calendar.getInstance();
+					String folder = String.format("%02d",(calendar.get(Calendar.HOUR_OF_DAY)))+".";
+					folder+=String.format("%02d",(calendar.get(Calendar.MINUTE)))+"-";
+					folder+=String.format("%02d",(calendar.get(Calendar.DAY_OF_MONTH)))+"-";
+					folder+=String.format("%02d",(calendar.get(Calendar.MONTH)))+"-";
+					folder+=Integer.toString(calendar.get(Calendar.YEAR));
+					File file = new File(chooser.getSelectedFile().getAbsolutePath()+"-"+folder);
+					String path = file.getAbsolutePath();
+					if(file.exists()){
+						return;
+					}
+					file.mkdirs();
+					if (record_list.size()>0){
+						for(DataContainer d : record_list){
+							file = new File(path+"/"+d.getName()+".slg");
+							try {
+								FileOutputStream fos = new FileOutputStream(file);
+								fos.write(d.getDataBytes());
+								fos.close();
+							} catch (IOException e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+							}
+						}
+					}
+					
 				} else {
 					System.out.println("No Selection ");
 				}
@@ -183,6 +216,55 @@ public class SleepGuard extends JFrame {
 		panel_2.add(btnNewButton_4, "cell 0 0,grow");
 		
 		JButton btnLoadRecords = new JButton("Load records");
+		btnLoadRecords.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				
+				chooser = new JFileChooser();
+				chooser.setCurrentDirectory(new java.io.File("."));
+				chooser.setDialogTitle(choosertitle);
+				chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+				FileFilter filter = new FileNameExtensionFilter("SleepGuard files","slg");
+				chooser.addChoosableFileFilter(filter);
+				chooser.setMultiSelectionEnabled(true);
+				//
+				// disable the "All files" option.
+				//
+
+				//
+				if (chooser.showOpenDialog(handle) == JFileChooser.APPROVE_OPTION) {
+
+					File[] files = chooser.getSelectedFiles();
+					if(files!=null){
+						if(files.length>0){
+							record_list.clear();
+							FileInputStream fis;
+							for(File f : files){
+								try {
+									fis = new FileInputStream(f);
+									byte[] data = new byte[(int) f.length()];
+									fis.read(data);
+									record_list.add(new DataContainer(f.getName().substring(0,f.getName().length()-4), data));
+								} catch (IOException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}								
+							}
+							DefaultListModel<String> listModel = new DefaultListModel<String>();
+							for(DataContainer d : record_list){
+								listModel.addElement(d.getName());	
+							}
+							list.removeAll();
+							list.setModel(listModel);
+						}
+					}
+					
+					
+				} else {
+					System.out.println("No Selection ");
+				}
+				
+			}
+		});
 		panel_2.add(btnLoadRecords, "cell 1 0,grow");
 
 		JPanel panel = new JPanel();

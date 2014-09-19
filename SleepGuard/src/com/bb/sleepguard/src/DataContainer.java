@@ -17,6 +17,11 @@ public class DataContainer {
 		name +=Integer.toString(bb.getInt());
 		data_local = samples;
 	}
+
+	public DataContainer(String record_name, byte[] samples) {
+		name = record_name;
+		data_local = samples;
+	}
 	
 	public double[] getData(){
 		double [] data = new double[data_local.length/4];
@@ -31,6 +36,10 @@ public class DataContainer {
 			
 		}
 		return data;
+	}
+
+	public byte[] getDataBytes(){
+		return data_local;
 	}
 	
 	public String getName(){
