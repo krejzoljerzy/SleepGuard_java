@@ -124,7 +124,7 @@ public class SleepGuard extends JFrame {
 		JButton btnNewButton_1 = new JButton("Erase memory");
 		btnNewButton_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				// connector.write("e");
+				connector.write("e");
 			}
 		});
 		panel_1.add(btnNewButton_1, "cell 0 1,grow");
