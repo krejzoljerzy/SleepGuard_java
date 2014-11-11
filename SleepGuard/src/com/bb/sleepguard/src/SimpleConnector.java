@@ -99,6 +99,10 @@ public class SimpleConnector {
 		return data;
 
 	}
+	
+	public boolean isOpened(){
+		return serialPort.isOpened();
+	}
 
 	static class SerialPortReader implements SerialPortEventListener {
 

@@ -1,11 +1,17 @@
 package com.bb.sleepguard.src;
 
+import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
+
 import javax.swing.JPanel;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.util.RelativeDateFormat;
+import org.jfree.data.time.SimpleTimePeriod;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
@@ -17,18 +23,27 @@ public class JChartPanel extends JPanel {
     XYSeriesCollection data = new XYSeriesCollection(series);
     JFreeChart chart = ChartFactory.createXYLineChart(
         "Trace of breath in sleep",
-        "Sample", 
-        "mBar", 
+        "elapsed time", 
+        "pressure [mBar]", 
         data,
         PlotOrientation.VERTICAL,
         true,
         true,
         false
     );
-    ChartPanel chartPanel =new ChartPanel(chart);
+    final DateAxis domainAxis = new DateAxis("elapsed time");
+
 	
 	public JChartPanel(){
     super();
+    domainAxis.setAutoTickUnitSelection(true);
+    RelativeDateFormat rdf = new RelativeDateFormat(0);
+    rdf.setHourSuffix( "h ");
+    rdf.setMinuteSuffix("m ");
+    rdf.setSecondSuffix("s ");
+    domainAxis.setDateFormatOverride(rdf);
+    chart.getXYPlot().setDomainAxis(domainAxis);
+    ChartPanel chartPanel =new ChartPanel(chart);
     chartPanel = new ChartPanel(chart);
     chartPanel.setPreferredSize(new java.awt.Dimension(688, 510));
     add(chartPanel);
@@ -37,46 +52,39 @@ public class JChartPanel extends JPanel {
 	public void add(double[]y){
 		data_backup = y;
 		series.clear();
-		int length = series.getItemCount();
 		Printer printer = new Printer();
 		printer.start();
-		length++;
+		int length =0;
+		
 		for(double data : y){
-			series.add(length++, data,false);
+			
+			series.add((length++)*20,data,false);
 		}
-		series.add(length++,0.0);
+		series.add((length++)*20,0.0);
 		
 		int i=0;
 		i++;
 		
 	}
 	
-	public void printChart(int[]y){
+	public void add(double[]y,int begining){
+		data_backup = y;
+		series.clear();
+		Printer printer = new Printer();
+		printer.start();
+		int length = begining;
 		
-		series = new XYSeries("Random Data");
-	    data = new XYSeriesCollection(series);
-	    chart = ChartFactory.createXYLineChart(
-	        "XY Series Demo",
-	        "X", 
-	        "Y", 
-	        data,
-	        PlotOrientation.VERTICAL,
-	        true,
-	        true,
-	        false
-	    );
-	    int length = 0;
-		for(int data : y){
-			series.add(length++, data/1000.0);
+		for(double data : y){
+			
+			series.add((length++)*20,data,false);
 		}
-	    chartPanel = new ChartPanel(chart);
-	    chartPanel.setPreferredSize(new java.awt.Dimension(590, 505));
-	    add(chartPanel);
-	    this.revalidate();
+		series.add((length++)*20,0.0);
 		
-		
+		int i=0;
+		i++;
 		
 	}
+	
 	
 	private class Printer extends Thread{
 		
